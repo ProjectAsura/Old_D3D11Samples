@@ -414,7 +414,7 @@ void ShadowMgr::ComputeMatrixUSM()
             m_LightBasis.v );
 
         // ライトビュー空間でのAABBを求める.
-        asdx::Vector3 point = asdx::Vector3::TransformCoord( convexHull[0], lightView );
+        asdx::Vector3 point = asdx::Vector3::TransformCoord( convexHull.GetAt(0), lightView );
         asdx::Vector3 mini = point;
         asdx::Vector3 maxi = point;
         {
@@ -446,7 +446,7 @@ void ShadowMgr::ComputeMatrixUSM()
             m_LightBasis.v);
 
         // 求め直したライトのビュー行列を使ってAABBを求める.
-        point = asdx::Vector3::TransformCoord( convexHull[0], m_LightView );
+        point = asdx::Vector3::TransformCoord( convexHull.GetAt(0), m_LightView );
         mini  = point;
         maxi  = point;
         {
@@ -477,7 +477,7 @@ void ShadowMgr::ComputeMatrixUSM()
         asdx::Matrix lightViewProj = m_LightView * m_LightProj;
 
         // ライトのビュー射影空間でのAABBを求める.
-        asdx::Vector3 point = asdx::Vector3::TransformCoord( convexHull[0], lightViewProj );
+        asdx::Vector3 point = asdx::Vector3::TransformCoord( convexHull.GetAt(0), lightViewProj );
         asdx::Vector3 mini = point;
         asdx::Vector3 maxi = point;
         {

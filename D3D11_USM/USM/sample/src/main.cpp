@@ -8,13 +8,13 @@
 #define _CRTDBG_MAP_ALLOC
 #endif//defined(DEBUG) || defined(_DEBUG)
 
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 
 //-----------------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------------
 #include <crtdbg.h>
+#include <Windows.h>
+#include <d3d11.h>
 #include <sampleApp.h>
 
 

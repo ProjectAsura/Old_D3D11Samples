@@ -7,6 +7,7 @@
 //-----------------------------------------------------------------------------------
 // Includes
 //-----------------------------------------------------------------------------------
+
 #include <sampleApp.h>
 #include <asdxShader.h>
 #include <asdxLog.h>
@@ -265,8 +266,7 @@ bool SampleApp::InitForward()
         if ( !m_Dosei.Init( 
             m_pDevice,
             resMesh,
-            pVSBlob->GetBufferPointer(),
-            pVSBlob->GetBufferSize(),
+            pVSBlob,
             "../res/scene/",
             "../res/dummy/" ) )
         {

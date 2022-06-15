@@ -4,8 +4,7 @@
 // Copyright(c) Project Asura. All right reserved.
 //-------------------------------------------------------------------------------------
 
-#ifndef __ASDX_GEOMETRY_INL__
-#define __ASDX_GEOMETRY_INL__
+#pragma once
 
 
 namespace asdx {
@@ -83,6 +82,22 @@ Vector3x8::Vector3x8( const Vector3x8 &value )
 ASDX_INLINE
 Vector3x8::~Vector3x8()
 { /* DO_NOTHING */ }
+
+///------------------------------------------------------------------------------------
+///<summary>Vector3*型へのキャストです.</summary>
+///<return>最初の要素へのポインタを返却します.</return>
+///------------------------------------------------------------------------------------
+ASDX_INLINE
+Vector3x8::operator Vector3* ()
+{ return &points[0]; }
+
+///------------------------------------------------------------------------------------
+///<summary>const Vector3*型へのキャストです.</summary>
+///<return>最初の要素へのポインタを返却します.</return>
+///------------------------------------------------------------------------------------
+ASDX_INLINE
+Vector3x8::operator const Vector3* () const
+{ return &points[0]; }
 
 ///------------------------------------------------------------------------------------
 ///<summary>インデクサです.</summary>
@@ -521,10 +536,7 @@ f32     Plane::DotNormal( const Vector3& value ) const
 ASDX_INLINE
 PlaneIntersectionType Plane::Intersects( const Vector3& point ) const
 {
-    register f32 dist = ( normal.x * point.x )
-                      + ( normal.y * point.y )
-                      + ( normal.z * point.z )
-                      + d;
+    register f32 dist = ( normal.x * point.x ) + ( normal.y * point.y ) + ( normal.z * point.z ) + d;
 
     if ( dist > 0.0f )
     { return PlaneIntersectionType::FRONT; }
@@ -911,7 +923,7 @@ bool Ray::Intersects( const BoundingBox& value, f32& distance ) const
     // X成分.
     if ( fabs( direction.x ) < F32_EPSILON )
     {
-        if ( ( position.x < value.mini.x ) || ( position.x > value.mini.x ) )
+        if ( ( position.x < value.min.x ) || ( position.x > value.min.x ) )
         {
             distance = 0.0f;
             return false;
@@ -921,8 +933,8 @@ bool Ray::Intersects( const BoundingBox& value, f32& distance ) const
     {
         assert( direction.x != 0.0f );
         register f32 inverse = 1.0f / direction.x;
-        register f32 t1 = ( value.mini.x - position.x ) * inverse;
-        register f32 t2 = ( value.maxi.x - position.x ) * inverse;
+        register f32 t1 = ( value.min.x - position.x ) * inverse;
+        register f32 t2 = ( value.max.x - position.x ) * inverse;
 
         if ( t1 > t2 )
         {
@@ -944,7 +956,7 @@ bool Ray::Intersects( const BoundingBox& value, f32& distance ) const
     // Y成分.
     if ( fabs( direction.y ) < F32_EPSILON )
     {
-        if ( ( position.y < value.mini.y ) || ( position.y > value.mini.y ) )
+        if ( ( position.y < value.min.y ) || ( position.y > value.min.y ) )
         {
             distance = 0.0f;
             return false;
@@ -954,8 +966,8 @@ bool Ray::Intersects( const BoundingBox& value, f32& distance ) const
     {
         assert( direction.y != 0.0f );
         register f32 inverse = 1.0f / direction.y;
-        register f32 t1 = ( value.mini.y - position.y ) * inverse;
-        register f32 t2 = ( value.maxi.y - position.y ) * inverse;
+        register f32 t1 = ( value.min.y - position.y ) * inverse;
+        register f32 t2 = ( value.max.y - position.y ) * inverse;
 
         if ( t1 > t2 )
         {
@@ -977,7 +989,7 @@ bool Ray::Intersects( const BoundingBox& value, f32& distance ) const
     // Z成分.
     if ( fabs( direction.z ) < F32_EPSILON )
     {
-        if ( ( position.z < value.mini.z ) || ( position.z > value.mini.z ) )
+        if ( ( position.z < value.min.z ) || ( position.z > value.min.z ) )
         {
             distance = 0.0f;
             return false;
@@ -987,8 +999,8 @@ bool Ray::Intersects( const BoundingBox& value, f32& distance ) const
     {
         assert( direction.z != 0.0f );
         register f32 inverse = 1.0f / direction.z;
-        register f32 t1 = ( value.mini.z - position.z ) * inverse;
-        register f32 t2 = ( value.maxi.z - position.z ) * inverse;
+        register f32 t1 = ( value.min.z - position.z ) * inverse;
+        register f32 t2 = ( value.max.z - position.z ) * inverse;
 
         if ( t1 > t2 )
         {
@@ -1159,29 +1171,76 @@ bool Ray::Intersects( const Plane& value, f32& distance ) const
 ASDX_INLINE
 bool Ray::Intersects( const Vector3& p0, const Vector3& p1, const Vector3& p2, f32& distance ) const
 {
-    Vector3 e1  = p1 - p0;
-    Vector3 e2  = p2 - p0;
-    Vector3 dir = direction;
-    Vector3 s1  = Vector3::Cross( dir, e2 );
-    register f32 div = Vector3::Dot( s1, e1 );
-    
-    if ( -FLT_EPSILON <= div && div <= FLT_EPSILON )
-    { return false; }
+    Vector3 e0;
+    Vector3 e1;
 
-    Vector3 d = position - p0;
-    register f32 beta = Vector3::Dot( d, s1 ) / div;
-    if ( beta <= 0.0 || beta >= 1.0 )
-    { return false; }
-    
-    Vector3 s2 = Vector3::Cross( d, e1 );
-    register f32 gamma = Vector3::Dot( dir, s2 ) / div;
-    if ( gamma <= 0.0 || ( beta + gamma ) >= 1.0 )
-    { return false; }
+    // エッジ0
+    e0.x = p1.x - p0.x;
+    e0.y = p1.y - p0.y;
+    e0.z = p1.z - p0.z;
 
-    register f32 dist = Vector3::Dot( e2, s2 ) / div;
+    // エッジ1
+    e1.x = p2.x - p0.x;
+    e1.y = p2.y - p0.y;
+    e1.z = p2.z - p0.z;
 
-    distance = dist;
+    // 外積を計算.
+    Vector3 u;
+    u.x = ( direction.y * e1.z ) - ( direction.z * e1.y );
+    u.y = ( direction.z * e1.x ) - ( direction.x * e1.z );
+    u.z = ( direction.x * e1.y ) - ( direction.y * e1.x );
 
+    // 行列式を計算.
+    f32 det = ( e0.x * u.x ) + ( e0.y * u.y ) + ( e0.z * u.z );
+
+    // 小さすぎた場合は交差しない.
+    if ( ( det > -F32_EPSILON ) && ( det < F32_EPSILON ) )
+    {
+        distance = 0.0f;
+        return false;
+    }
+
+    // 分母を算出.
+    f32 invDet = 1.0f / det;
+
+    Vector3 diff;
+    diff.x = position.x - p0.x;
+    diff.y = position.y - p0.y;
+    diff.z = position.z - p0.z;
+
+    f32 beta = ( diff.x * u.x ) + ( diff.y * u.y ) + ( diff.z * u.z );
+    beta *= invDet;
+
+    if ( ( beta < 0.0f ) || ( beta > 1.0f ) )
+    {
+        distance = 0.0f;
+        return false;
+    }
+
+    Vector3 v;
+    v.x = ( diff.y * e0.z ) - ( diff.z * e0.y );
+    v.y = ( diff.z * e0.x ) - ( diff.x * e0.z );
+    v.z = ( diff.x * e0.y ) - ( diff.y * e0.x );
+
+    f32 gamma = ( ( direction.x * v.x ) + ( direction.y * v.y ) ) + ( direction.z * v.z );
+    gamma *= invDet;
+
+    if ( ( gamma < 0.0f ) || ( gamma + beta > 1.0f ) )
+    {
+        distance = 0.0f;
+        return false;
+    }
+
+    f32 rayDist = ( e1.x * v.x ) + ( e1.y * v.y ) + ( e1.z * v.z );
+    rayDist *= invDet;
+
+    if ( rayDist < 0.0f )
+    {
+        distance = 0.0f;
+        return false;
+    }
+
+    distance = rayDist;
     return true;
 }
 
@@ -1204,8 +1263,8 @@ BoundingBox::BoundingBox()
 ///------------------------------------------------------------------------------------
 ASDX_INLINE
 BoundingBox::BoundingBox( const Vector3& mini, const Vector3& maxi )
-: mini( mini )
-, maxi( maxi )
+: min( mini )
+, max( maxi )
 { /* DO_NOTHING */ }
 
 ///------------------------------------------------------------------------------------
@@ -1214,8 +1273,8 @@ BoundingBox::BoundingBox( const Vector3& mini, const Vector3& maxi )
 ///------------------------------------------------------------------------------------
 ASDX_INLINE
 BoundingBox::BoundingBox( const BoundingBox& value )
-: mini( value.mini )
-, maxi( value.maxi )
+: min( value.min )
+, max( value.max )
 { /* DO_NOTHING */ }
 
 ///------------------------------------------------------------------------------------
@@ -1233,13 +1292,13 @@ BoundingBox::~BoundingBox()
 ASDX_INLINE
 BoundingBox& BoundingBox::operator = ( const BoundingBox& value )
 {
-    mini.x = value.mini.x;
-    mini.y = value.mini.y;
-    mini.z = value.mini.z;
+    min.x = value.min.x;
+    min.y = value.min.y;
+    min.z = value.min.z;
 
-    maxi.x = value.maxi.x;
-    maxi.y = value.maxi.y;
-    maxi.z = value.maxi.z;
+    max.x = value.max.x;
+    max.y = value.max.y;
+    max.z = value.max.z;
 
     return (*this);
 }
@@ -1252,8 +1311,8 @@ BoundingBox& BoundingBox::operator = ( const BoundingBox& value )
 ASDX_INLINE
 bool BoundingBox::operator == ( const BoundingBox& value ) const
 {
-    return ( mini == value.mini )
-        && ( maxi == value.maxi );
+    return ( min == value.min )
+        && ( max == value.max );
 }
 
 ///------------------------------------------------------------------------------------
@@ -1264,8 +1323,8 @@ bool BoundingBox::operator == ( const BoundingBox& value ) const
 ASDX_INLINE
 bool BoundingBox::operator != ( const BoundingBox& value ) const
 {
-    return ( mini != value.mini )
-        || ( maxi != value.maxi );
+    return ( min != value.min )
+        || ( max != value.max );
 }
 
 ///------------------------------------------------------------------------------------
@@ -1276,13 +1335,19 @@ bool BoundingBox::operator != ( const BoundingBox& value ) const
 ASDX_INLINE
 ContainmentType BoundingBox::Contains( const Vector3& value ) const
 {
-    if ( ( ( mini.x <= value.x ) && ( value.x <= maxi.x ) )
-      && ( ( mini.y <= value.y ) && ( value.y <= maxi.y ) )
-      && ( ( mini.z <= value.z ) && ( value.z <= maxi.z ) )
+    if ( ( value.x < min.x ) || ( value.x > max.x )
+      || ( value.y < min.y ) || ( value.y > max.y )
+      || ( value.z < min.z ) || ( value.z > max.z )
     )
-    { return ContainmentType::CONTAINS; }
+    { return ContainmentType::DISJOINT; }
+    else if ( 
+         ( value.x == min.x ) || ( value.x == max.x )
+      || ( value.y == min.y ) || ( value.y == max.y )
+      || ( value.z == min.z ) || ( value.z == max.z )
+    )
+    { return ContainmentType::INTERSECTS; }
 
-    return ContainmentType::DISJOINT;
+    return ContainmentType::CONTAINS;
 }
 
 ///------------------------------------------------------------------------------------
@@ -1293,15 +1358,15 @@ ContainmentType BoundingBox::Contains( const Vector3& value ) const
 ASDX_INLINE
 ContainmentType BoundingBox::Contains( const BoundingBox& value ) const
 {
-    if ( ( value.maxi.x < mini.x ) || ( value.mini.x < maxi.x )
-      || ( value.maxi.y < mini.y ) || ( value.mini.y < maxi.y )
-      || ( value.maxi.z < mini.z ) || ( value.mini.z < maxi.z ) 
+    if ( ( value.max.x < min.x ) || ( value.min.x < max.x )
+      || ( value.max.y < min.y ) || ( value.min.y < max.y )
+      || ( value.max.z < min.z ) || ( value.min.z < max.z ) 
     )
     { return ContainmentType::DISJOINT; }
     else if (
-        ( value.mini.x >= mini.x ) && ( value.maxi.x <= maxi.x )
-     && ( value.mini.y >= mini.y ) && ( value.maxi.y <= maxi.y )
-     && ( value.mini.z >= mini.z ) && ( value.maxi.z <= maxi.z ) 
+        ( value.min.x >= min.x ) && ( value.max.x <= max.x )
+     && ( value.min.y >= min.y ) && ( value.max.y <= max.y )
+     && ( value.min.z >= min.z ) && ( value.max.z <= max.z ) 
     )
     { return ContainmentType::CONTAINS; }
 
@@ -1316,12 +1381,12 @@ ContainmentType BoundingBox::Contains( const BoundingBox& value ) const
 ASDX_INLINE
 ContainmentType BoundingBox::Contains( const BoundingSphere& value ) const
 {
-    register f32 cmX = value.center.x - mini.x;
-    register f32 cmY = value.center.y - mini.y;
-    register f32 cmZ = value.center.z - mini.z;
-    register f32 mcX = maxi.x - value.center.x;
-    register f32 mcY = maxi.y - value.center.y;
-    register f32 mcZ = maxi.z - value.center.z;
+    register f32 cmX = value.center.x - min.x;
+    register f32 cmY = value.center.y - min.y;
+    register f32 cmZ = value.center.z - min.z;
+    register f32 mcX = max.x - value.center.x;
+    register f32 mcY = max.y - value.center.y;
+    register f32 mcZ = max.z - value.center.z;
 
     if ( ( cmX > value.radius )
       && ( cmY > value.radius )
@@ -1403,13 +1468,13 @@ ContainmentType BoundingBox::Contains( const BoundingFrustum& value ) const
 ASDX_INLINE
 bool    BoundingBox::Intersects( const BoundingBox& value ) const
 {
-    if ( ( mini.x > value.maxi.x ) || ( mini.x > value.maxi.x ) )
+    if ( ( min.x > value.max.x ) || ( min.x > value.max.x ) )
     { return false; }
 
-    if ( ( mini.y > value.maxi.y ) || ( mini.y > value.maxi.y ) )
+    if ( ( min.y > value.max.y ) || ( min.y > value.max.y ) )
     { return false; }
 
-    if ( ( mini.z > value.maxi.z ) || ( mini.z > value.maxi.z ) )
+    if ( ( min.z > value.max.z ) || ( min.z > value.max.z ) )
     { return false; }
 
     return true;
@@ -1423,7 +1488,7 @@ bool    BoundingBox::Intersects( const BoundingBox& value ) const
 ASDX_INLINE
 bool    BoundingBox::Intersects( const BoundingSphere& value ) const
 {
-    Vector3 vec = Clamp( value.center, mini, maxi );
+    Vector3 vec = Clamp( value.center, min, max );
     register f32 dist = Vector3::DistanceSq( value.center, vec );
     return ( dist <= ( value.radius * value.radius ) );
 }
@@ -1472,23 +1537,23 @@ bool    BoundingBox::Intersects( const BoundingFrustum& value ) const
 ASDX_INLINE
 PlaneIntersectionType BoundingBox::Intersects( const Plane& value ) const
 {
-    Vector3 _mini;
-    Vector3 _maxi;
+    Vector3 mini;
+    Vector3 maxi;
 
-    _maxi.x = ( value.normal.x >= 0.0f ) ? _mini.x : maxi.x;
-    _maxi.y = ( value.normal.y >= 0.0f ) ? _mini.y : maxi.y;
-    _maxi.z = ( value.normal.z >= 0.0f ) ? _mini.z : maxi.z;
+    maxi.x = ( value.normal.x >= 0.0f ) ? min.x : max.x;
+    maxi.y = ( value.normal.y >= 0.0f ) ? min.y : max.y;
+    maxi.z = ( value.normal.z >= 0.0f ) ? min.z : max.z;
 
-    _mini.x = ( value.normal.x >= 0.0f ) ? _maxi.x : mini.x;
-    _mini.y = ( value.normal.y >= 0.0f ) ? _maxi.y : mini.y;
-    _mini.z = ( value.normal.z >= 0.0f ) ? _maxi.z : mini.z;
+    mini.x = ( value.normal.x >= 0.0f ) ? max.x : min.x;
+    mini.y = ( value.normal.y >= 0.0f ) ? max.y : min.y;
+    mini.z = ( value.normal.z >= 0.0f ) ? max.z : min.z;
 
-    register f32 dist = Vector3::Dot( value.normal, _maxi );
+    register f32 dist = Vector3::Dot( value.normal, maxi );
 
     if ( dist + value.d > 0.0f )
     { return PlaneIntersectionType::FRONT; }
 
-    dist = Vector3::Dot( value.normal, _mini );
+    dist = Vector3::Dot( value.normal, mini );
 
     if ( dist + value.d < 0.0f )
     { return PlaneIntersectionType::BACK; }
@@ -1512,8 +1577,8 @@ bool    BoundingBox::Intersects( const Ray& value, f32& distance ) const
     // X成分.
     if ( fabs( value.direction.x ) < F32_EPSILON )
     {
-        if ( ( value.position.x < mini.x )
-          || ( value.position.x > mini.x ) )
+        if ( ( value.position.x < min.x )
+          || ( value.position.x > min.x ) )
         {
             distance = 0.0f;
             return false;
@@ -1523,8 +1588,8 @@ bool    BoundingBox::Intersects( const Ray& value, f32& distance ) const
     {
         assert( value.direction.x != 0.0f );
         register f32 inverse = 1.0f / value.direction.x;
-        register f32 t1 = ( mini.x - value.position.x ) * inverse;
-        register f32 t2 = ( maxi.x - value.position.x ) * inverse;
+        register f32 t1 = ( min.x - value.position.x ) * inverse;
+        register f32 t2 = ( max.x - value.position.x ) * inverse;
 
         if ( t1 > t2 )
         {
@@ -1546,7 +1611,7 @@ bool    BoundingBox::Intersects( const Ray& value, f32& distance ) const
     // Y成分.
     if ( fabs( value.direction.y ) < F32_EPSILON )
     {
-        if ( ( value.position.y < mini.y ) || ( value.position.y > mini.y ) )
+        if ( ( value.position.y < min.y ) || ( value.position.y > min.y ) )
         {
             distance = 0.0f;
             return false;
@@ -1556,8 +1621,8 @@ bool    BoundingBox::Intersects( const Ray& value, f32& distance ) const
     {
         assert( value.direction.y != 0.0f );
         register f32 inverse = 1.0f / value.direction.y;
-        register f32 t1 = ( mini.y - value.position.y ) * inverse;
-        register f32 t2 = ( maxi.y - value.position.y ) * inverse;
+        register f32 t1 = ( min.y - value.position.y ) * inverse;
+        register f32 t2 = ( max.y - value.position.y ) * inverse;
 
         if ( t1 > t2 )
         {
@@ -1579,7 +1644,7 @@ bool    BoundingBox::Intersects( const Ray& value, f32& distance ) const
     // Z成分.
     if ( fabs( value.direction.z ) < F32_EPSILON )
     {
-        if ( ( value.position.z < mini.z ) || ( value.position.z > mini.z ) )
+        if ( ( value.position.z < min.z ) || ( value.position.z > min.z ) )
         {
             distance = 0.0f;
             return false;
@@ -1589,8 +1654,8 @@ bool    BoundingBox::Intersects( const Ray& value, f32& distance ) const
     {
         assert( value.direction.z != 0.0f );
         register f32 inverse = 1.0f / value.direction.z;
-        register f32 t1 = ( mini.z - value.position.z ) * inverse;
-        register f32 t2 = ( maxi.z - value.position.z ) * inverse;
+        register f32 t1 = ( min.z - value.position.z ) * inverse;
+        register f32 t2 = ( max.z - value.position.z ) * inverse;
 
         if ( t1 > t2 )
         {
@@ -1621,14 +1686,14 @@ Vector3x8   BoundingBox::GetCorners() const
 {
     Vector3x8 result;
 
-    result.SetAt( 0, Vector3( mini.x, maxi.y, maxi.z ) );
-    result.SetAt( 1, Vector3( maxi.x, maxi.y, maxi.z ) );
-    result.SetAt( 2, Vector3( maxi.x, mini.y, maxi.z ) );
-    result.SetAt( 3, Vector3( mini.x, mini.y, maxi.z ) );
-    result.SetAt( 4, Vector3( mini.x, maxi.y, mini.z ) );
-    result.SetAt( 5, Vector3( maxi.x, maxi.y, mini.z ) );
-    result.SetAt( 6, Vector3( maxi.x, mini.y, mini.z ) );
-    result.SetAt( 7, Vector3( mini.x, mini.y, mini.z ) );
+    result.SetAt( 0, Vector3( min.x, max.y, max.z ) );
+    result.SetAt( 1, Vector3( max.x, max.y, max.z ) );
+    result.SetAt( 2, Vector3( max.x, min.y, max.z ) );
+    result.SetAt( 3, Vector3( min.x, min.y, max.z ) );
+    result.SetAt( 4, Vector3( min.x, max.y, min.z ) );
+    result.SetAt( 5, Vector3( max.x, max.y, min.z ) );
+    result.SetAt( 6, Vector3( max.x, min.y, min.z ) );
+    result.SetAt( 7, Vector3( min.x, min.y, min.z ) );
     
     return result;
 }
@@ -1640,14 +1705,14 @@ Vector3x8   BoundingBox::GetCorners() const
 ASDX_INLINE
 void    BoundingBox::GetCorners( Vector3x8& result ) const
 {
-    result.SetAt( 0, Vector3( mini.x, maxi.y, maxi.z ) );
-    result.SetAt( 1, Vector3( maxi.x, maxi.y, maxi.z ) );
-    result.SetAt( 2, Vector3( maxi.x, mini.y, maxi.z ) );
-    result.SetAt( 3, Vector3( mini.x, mini.y, maxi.z ) );
-    result.SetAt( 4, Vector3( mini.x, maxi.y, mini.z ) );
-    result.SetAt( 5, Vector3( maxi.x, maxi.y, mini.z ) );
-    result.SetAt( 6, Vector3( maxi.x, mini.y, mini.z ) );
-    result.SetAt( 7, Vector3( mini.x, mini.y, mini.z ) );
+    result.SetAt( 0, Vector3( min.x, max.y, max.z ) );
+    result.SetAt( 1, Vector3( max.x, max.y, max.z ) );
+    result.SetAt( 2, Vector3( max.x, min.y, max.z ) );
+    result.SetAt( 3, Vector3( min.x, min.y, max.z ) );
+    result.SetAt( 4, Vector3( min.x, max.y, min.z ) );
+    result.SetAt( 5, Vector3( max.x, max.y, min.z ) );
+    result.SetAt( 6, Vector3( max.x, min.y, min.z ) );
+    result.SetAt( 7, Vector3( min.x, min.y, min.z ) );
 }
 
 ///------------------------------------------------------------------------------------
@@ -1660,8 +1725,8 @@ ASDX_INLINE
 BoundingBox     BoundingBox::CreateMerged( const BoundingBox& a, const BoundingBox& b )
 {
     return BoundingBox(
-        Min( a.mini, b.mini ),
-        Max( a.maxi, b.maxi )
+        Min( a.min, b.min ),
+        Max( a.max, b.max )
     );
 }
 
@@ -1674,8 +1739,8 @@ BoundingBox     BoundingBox::CreateMerged( const BoundingBox& a, const BoundingB
 ASDX_INLINE
 void    BoundingBox::CreateMerged( const BoundingBox& a, const BoundingBox& b, BoundingBox& result )
 {
-    result.mini = Min( a.mini, b.mini );
-    result.maxi = Max( a.maxi, b.maxi );
+    result.min = Min( a.min, b.min );
+    result.max = Max( a.max, b.max );
 }
 
 ///------------------------------------------------------------------------------------
@@ -1700,8 +1765,8 @@ BoundingBox     BoundingBox::CreateFromSphere( const BoundingSphere& value )
 ASDX_INLINE
 void    BoundingBox::CreateFromSphere( const BoundingSphere& value, BoundingBox& result )
 {
-    result.mini = Vector3( value.center.x - value.radius, value.center.y - value.radius, value.center.z - value.radius );
-    result.maxi = Vector3( value.center.x + value.radius, value.center.y + value.radius, value.center.z + value.radius );
+    result.min = Vector3( value.center.x - value.radius, value.center.y - value.radius, value.center.z - value.radius );
+    result.max = Vector3( value.center.x + value.radius, value.center.y + value.radius, value.center.z + value.radius );
 }
 
 ///------------------------------------------------------------------------------------
@@ -1722,8 +1787,8 @@ BoundingBox     BoundingBox::CreateFromPoints( const u32 numPoints, const Vector
 
     for( u32 i=(offset+1); i<numPoints; ++i )
     {
-        mini = Vector3::Min( mini, pPoints[ i ] );
-        maxi = Vector3::Max( maxi, pPoints[ i ] );
+        mini = Min( mini, pPoints[ i ] );
+        maxi = Max( maxi, pPoints[ i ] );
     }
 
     return BoundingBox( mini, maxi );
@@ -1751,49 +1816,8 @@ void    BoundingBox::CreateFromPoints( const u32 numPoints, const Vector3* pPoin
         maxi = Max( maxi, pPoints[ i ] );
     }
 
-    result.mini = mini;
-    result.maxi = maxi;
-}
-
-///------------------------------------------------------------------------------------
-///<summary>8角の点から境界箱を生成します.</summary>
-///<param name="corners">8角の点</param>
-///<return>8角の点から生成された境界箱を返却します</return>
-///------------------------------------------------------------------------------------
-ASDX_INLINE
-BoundingBox BoundingBox::CreateFromCorners( const Vector3x8& corners )
-{
-    Vector3 mini( corners[ 0 ] );
-    Vector3 maxi( corners[ 0 ] );
-
-    for( u32 i=0; i<8; ++i )
-    {
-        mini = Min( mini, corners[ i ] );
-        maxi = Max( maxi, corners[ i ] );
-    }
-
-    return BoundingBox( mini, maxi );
-}
-
-///------------------------------------------------------------------------------------
-///<summary>8角の点から境界箱を生成します.</summary>
-///<param name="corners">8角の点</param>
-///<param name="result">8角の点から生成された境界箱</param>
-///------------------------------------------------------------------------------------
-ASDX_INLINE
-void BoundingBox::CreateFromCorners( const Vector3x8& corners, BoundingBox& result )
-{
-    Vector3 mini( corners[ 0 ] );
-    Vector3 maxi( corners[ 0 ] );
-
-    for( u32 i=0; i<8; ++i )
-    {
-        mini = Min( mini, corners[ i ] );
-        maxi = Max( maxi, corners[ i ] );
-    }
-
-    result.maxi = maxi;
-    result.mini = mini;
+    result.min = mini;
+    result.max = maxi;
 }
 
 
@@ -1895,65 +1919,65 @@ ContainmentType BoundingSphere::Contains( const Vector3& value ) const
 ASDX_INLINE
 ContainmentType BoundingSphere::Contains( const BoundingBox& value ) const
 {
-    Vector3 vec = Clamp( center, value.mini, value.maxi );
+    Vector3 vec = Clamp( center, value.min, value.max );
     register f32 dist = Vector3::DistanceSq( center, vec );
     register f32 radiusSq = radius * radius;
 
     if ( dist <= radiusSq )
     { return ContainmentType::DISJOINT; }
 
-    vec.x = center.x - value.mini.x;
-    vec.y = center.y - value.maxi.y;
-    vec.z = center.z - value.maxi.z;
+    vec.x = center.x - value.min.x;
+    vec.y = center.y - value.max.y;
+    vec.z = center.z - value.max.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.maxi.x;
-    vec.y = center.y - value.maxi.y;
-    vec.z = center.z - value.maxi.z;
+    vec.x = center.x - value.max.x;
+    vec.y = center.y - value.max.y;
+    vec.z = center.z - value.max.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.maxi.x;
-    vec.y = center.y - value.mini.y;
-    vec.z = center.z - value.maxi.z;
+    vec.x = center.x - value.max.x;
+    vec.y = center.y - value.min.y;
+    vec.z = center.z - value.max.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.mini.x;
-    vec.y = center.y - value.mini.y;
-    vec.z = center.z - value.maxi.z;
+    vec.x = center.x - value.min.x;
+    vec.y = center.y - value.min.y;
+    vec.z = center.z - value.max.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.mini.x;
-    vec.y = center.y - value.maxi.y;
-    vec.z = center.z - value.mini.z;
+    vec.x = center.x - value.min.x;
+    vec.y = center.y - value.max.y;
+    vec.z = center.z - value.min.z;
     
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.maxi.x;
-    vec.y = center.y - value.maxi.y;
-    vec.z = center.z - value.mini.z;
+    vec.x = center.x - value.max.x;
+    vec.y = center.y - value.max.y;
+    vec.z = center.z - value.min.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.maxi.x;
-    vec.y = center.y - value.mini.y;
-    vec.z = center.z - value.mini.z;
+    vec.x = center.x - value.max.x;
+    vec.y = center.y - value.min.y;
+    vec.z = center.z - value.min.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
 
-    vec.x = center.x - value.mini.x;
-    vec.y = center.y - value.mini.y;
-    vec.z = center.z - value.mini.z;
+    vec.x = center.x - value.min.x;
+    vec.y = center.y - value.min.y;
+    vec.z = center.z - value.min.z;
 
     if ( vec.LengthSq() > radiusSq )
     { return ContainmentType::INTERSECTS; }
@@ -2023,7 +2047,7 @@ ContainmentType BoundingSphere::Contains( const BoundingFrustum& value ) const
 ASDX_INLINE
 bool    BoundingSphere::Intersects( const BoundingBox& value ) const
 {
-    Vector3 vec = Clamp( center, value.mini, value.maxi );
+    Vector3 vec = Clamp( center, value.min, value.max );
     register f32 dist = Vector3::DistanceSq( center, vec );
     return ( dist <= ( radius * radius ) );
 }
@@ -2223,14 +2247,14 @@ void    BoundingSphere::CreateMerged( const BoundingSphere& a, const BoundingSph
 ASDX_INLINE
 BoundingSphere BoundingSphere::CreateFromBoundingBox( const BoundingBox& value )
 {
-    register f32 X = value.mini.x - value.maxi.x;
-    register f32 Y = value.mini.y - value.maxi.y;
-    register f32 Z = value.mini.z - value.maxi.z;
+    register f32 X = value.min.x - value.max.x;
+    register f32 Y = value.min.y - value.max.y;
+    register f32 Z = value.min.z - value.max.z;
 
     return BoundingSphere(
-        Vector3( ( value.mini.x + value.maxi.x ) * 0.5f
-               , ( value.mini.y + value.maxi.y ) * 0.5f
-               , ( value.mini.z + value.maxi.z ) * 0.5f
+        Vector3( ( value.min.x + value.max.x ) * 0.5f
+               , ( value.min.y + value.max.y ) * 0.5f
+               , ( value.min.z + value.max.z ) * 0.5f
         ),
         sqrtf( ( X * X ) + ( Y * Y ) + ( Z * Z ) ) * 0.5f
     );
@@ -2244,13 +2268,13 @@ BoundingSphere BoundingSphere::CreateFromBoundingBox( const BoundingBox& value )
 ASDX_INLINE
 void    BoundingSphere::CreateFromBoundingBox( const BoundingBox& value, BoundingSphere& result )
 {
-    result.center.x = ( value.mini.x + value.maxi.x ) * 0.5f;
-    result.center.y = ( value.mini.y + value.maxi.y ) * 0.5f;
-    result.center.z = ( value.mini.z + value.maxi.z ) * 0.5f;
+    result.center.x = ( value.min.x + value.max.x ) * 0.5f;
+    result.center.y = ( value.min.y + value.max.y ) * 0.5f;
+    result.center.z = ( value.min.z + value.max.z ) * 0.5f;
 
-    register f32 X = value.mini.x - value.maxi.x;
-    register f32 Y = value.mini.y - value.maxi.y;
-    register f32 Z = value.mini.z - value.maxi.z;
+    register f32 X = value.min.x - value.max.x;
+    register f32 Y = value.min.y - value.max.y;
+    register f32 Z = value.min.z - value.max.z;
 
     result.radius = sqrtf( ( X * X ) + ( Y * Y ) + ( Z * Z ) ) * 0.5f;
 }
@@ -2321,62 +2345,6 @@ void    BoundingSphere::CreateFromPoints( const u32 numPoints, const Vector3* pP
     result.radius = sqrtf( r );
 }
 
-///------------------------------------------------------------------------------------
-///<summary>8角の点から境界球を生成します.</summary>
-///<param name="corners">8角の点.</param>
-///<return>8角の点から生成された境界球を返却します.</return>
-///------------------------------------------------------------------------------------
-ASDX_INLINE
-BoundingSphere  BoundingSphere::CreateFromCorners( const Vector3x8& corners )
-{
-    Vector3 c = corners[ 0 ];
-
-    for( u32 i=0; i<8; ++i )
-    { c += corners[ i ]; }
-
-    c /= 8.0f;
-
-    register f32 r = Vector3::DistanceSq( c, corners[ 0 ] );
-
-    for( u32 i=0; i<8; ++i )
-    {
-        register f32 dist = Vector3::DistanceSq( c, corners[ i ] );
-        if ( dist > r )
-        { r = dist; }
-    }
-
-    r = sqrtf( r );
-    return BoundingSphere( c, r );
-}
-
-///------------------------------------------------------------------------------------
-///<summary>8角の点から境界球を生成します.</summary>
-///<param name="corners">8角の点.</param>
-///<param name="result">生成された境界球.</param>
-///------------------------------------------------------------------------------------
-ASDX_INLINE
-void BoundingSphere::CreateFromCorners( const Vector3x8& corners, BoundingSphere& result )
-{
-    Vector3 c = corners[ 0 ];
-
-    for( u32 i=0; i<8; ++i )
-    { c += corners[ i ]; }
-
-    c /= 8.0f;
-
-    register f32 r = Vector3::DistanceSq( c, corners[ 0 ] );
-
-    for( u32 i=0; i<8; ++i )
-    {
-        register f32 dist = Vector3::DistanceSq( c, corners[ i ] );
-        if ( dist > r )
-        { r = dist; }
-    }
-
-    r = sqrtf( r );
-    result.center = c;
-    result.radius = r;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -2569,39 +2537,6 @@ ContainmentType BoundingFrustum::Contains( const Vector3& value ) const
 }
 
 ///------------------------------------------------------------------------------------
-///<summary>平面の交差判定に用いるパラメータを取得します.</summary>
-///<param name="box">境界箱.</param>
-///<param name="planeNormal">平面の法線ベクトル</param>
-///<param name="p">交差判定に用いるパラメータ</param>
-///<param name="n">交差判定に用いるパラメータ</param>
-///------------------------------------------------------------------------------------
-ASDX_INLINE
-void BoundingFrustum::GetPlaneIntersectParam
-(
-    const BoundingBox&  box,
-    const Vector3&      planeNormal,
-    Vector3&            p,
-    Vector3&            n
-)
-{
-    p = box.mini;
-    if ( planeNormal.x >= 0.0f )
-    { p.x = box.maxi.x; }
-    if ( planeNormal.y >= 0.0f )
-    { p.y = box.maxi.y; }
-    if ( planeNormal.z >= 0.0f )
-    { p.z = box.maxi.z; }
-
-    n = box.maxi;
-    if ( planeNormal.x >= 0.0f )
-    { n.x = box.mini.x; }
-    if ( planeNormal.y >= 0.0f )
-    { n.y = box.mini.y; }
-    if ( planeNormal.z >= 0.0f )
-    { n.z = box.mini.z; }
-}
-
-///------------------------------------------------------------------------------------
 ///<summary>包含判定を行います.</summary>
 ///<param name="value">判定する境界箱</param>
 ///<return>境界錐台に境界箱が含まれるかどうかの判定結果を返却します.</return>
@@ -2609,22 +2544,37 @@ void BoundingFrustum::GetPlaneIntersectParam
 ASDX_INLINE
 ContainmentType BoundingFrustum::Contains( const BoundingBox& value ) const
 {
-    Vector3 p, n;
-    ContainmentType result = ContainmentType::CONTAINS;
+    ContainmentType result;
+    Vector3x8 corners = GetCorners();
+    bool isContainsAny = false;
+    bool isContainsAll = true;
 
-    for( u32 i=0; i<6; ++i )
+    for( u32 i=0; i<corners.GetSize(); ++i )
     {
-        GetPlaneIntersectParam( value, plane[i].normal, p, n );
-        if ( plane[i].Intersects( p ) == PlaneIntersectionType::BACK )
-        { return ContainmentType::DISJOINT; }
+        result = value.Contains( corners.GetAt( i ) );
+        switch( result )
+        {
+        case ContainmentType::CONTAINS:
+        case ContainmentType::INTERSECTS:
+            isContainsAny = true;
+            break;
 
-        if ( plane[i].Intersects( n ) == PlaneIntersectionType::BACK )
-        { result = ContainmentType::INTERSECTS; }
+        case ContainmentType::DISJOINT:
+            isContainsAll = false;
+            break;
+        }
     }
 
-    return result;
+    if ( isContainsAny )
+    {
+        if ( isContainsAll )
+        { return ContainmentType::CONTAINS; }
+        else
+        { return ContainmentType::INTERSECTS; }
+    }
+    else
+    { return ContainmentType::DISJOINT; }
 }
-
 
 ///------------------------------------------------------------------------------------
 ///<summary>包含判定を行います.</summary>
@@ -2848,14 +2798,14 @@ ASDX_INLINE
 Vector3x8   BoundingFrustum::GetCorners() const
 {
     Vector3x8 result;
-    result.SetAt( 0, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_BOTTOM], plane[PLANE_RIGHT] ) );
-    result.SetAt( 1, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_TOP],    plane[PLANE_RIGHT] ) );
-    result.SetAt( 2, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_TOP],    plane[PLANE_LEFT]  ) );
-    result.SetAt( 3, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_BOTTOM], plane[PLANE_LEFT]  ) );
-    result.SetAt( 4, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_BOTTOM], plane[PLANE_RIGHT] ) );
-    result.SetAt( 5, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_TOP],    plane[PLANE_RIGHT] ) );
-    result.SetAt( 6, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_TOP],    plane[PLANE_LEFT]  ) );
-    result.SetAt( 7, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_BOTTOM], plane[PLANE_LEFT]  ) );
+    result.SetAt( 0, IntersectionPoint( plane[NEAR_CLIP], plane[BOTTOM], plane[RIGHT] ) );
+    result.SetAt( 1, IntersectionPoint( plane[NEAR_CLIP], plane[TOP],    plane[RIGHT] ) );
+    result.SetAt( 2, IntersectionPoint( plane[NEAR_CLIP], plane[TOP],    plane[LEFT]  ) );
+    result.SetAt( 3, IntersectionPoint( plane[NEAR_CLIP], plane[BOTTOM], plane[LEFT]  ) );
+    result.SetAt( 4, IntersectionPoint( plane[FAR_CLIP],  plane[BOTTOM], plane[RIGHT] ) );
+    result.SetAt( 5, IntersectionPoint( plane[FAR_CLIP],  plane[TOP],    plane[RIGHT] ) );
+    result.SetAt( 6, IntersectionPoint( plane[FAR_CLIP],  plane[TOP],    plane[LEFT]  ) );
+    result.SetAt( 7, IntersectionPoint( plane[FAR_CLIP],  plane[BOTTOM], plane[LEFT]  ) );
 
     return result;
 }
@@ -2867,14 +2817,14 @@ Vector3x8   BoundingFrustum::GetCorners() const
 ASDX_INLINE
 void    BoundingFrustum::GetCorners( Vector3x8& result ) const
 {
-    result.SetAt( 0, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_BOTTOM], plane[PLANE_RIGHT] ) );
-    result.SetAt( 1, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_TOP],    plane[PLANE_RIGHT] ) );
-    result.SetAt( 2, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_TOP],    plane[PLANE_LEFT]  ) );
-    result.SetAt( 3, IntersectionPoint( plane[PLANE_NEAR], plane[PLANE_BOTTOM], plane[PLANE_LEFT]  ) );
-    result.SetAt( 4, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_BOTTOM], plane[PLANE_RIGHT] ) );
-    result.SetAt( 5, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_TOP],    plane[PLANE_RIGHT] ) );
-    result.SetAt( 6, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_TOP],    plane[PLANE_LEFT]  ) );
-    result.SetAt( 7, IntersectionPoint( plane[PLANE_FAR],  plane[PLANE_BOTTOM], plane[PLANE_LEFT]  ) );
+    result.SetAt( 0, IntersectionPoint( plane[NEAR_CLIP], plane[BOTTOM], plane[RIGHT] ) );
+    result.SetAt( 1, IntersectionPoint( plane[NEAR_CLIP], plane[TOP],    plane[RIGHT] ) );
+    result.SetAt( 2, IntersectionPoint( plane[NEAR_CLIP], plane[TOP],    plane[LEFT]  ) );
+    result.SetAt( 3, IntersectionPoint( plane[NEAR_CLIP], plane[BOTTOM], plane[LEFT]  ) );
+    result.SetAt( 4, IntersectionPoint( plane[FAR_CLIP],  plane[BOTTOM], plane[RIGHT] ) );
+    result.SetAt( 5, IntersectionPoint( plane[FAR_CLIP],  plane[TOP],    plane[RIGHT] ) );
+    result.SetAt( 6, IntersectionPoint( plane[FAR_CLIP],  plane[TOP],    plane[LEFT]  ) );
+    result.SetAt( 7, IntersectionPoint( plane[FAR_CLIP],  plane[BOTTOM], plane[LEFT]  ) );
 }
 
 
@@ -3095,4 +3045,3 @@ void IsDelaunayTriangle
 
 } // namespace asdx
 
-#endif//__ASDX_GEOMETRY_INL__

@@ -13,6 +13,23 @@
 #include <d3d11.h>
 
 
+#ifndef SAFE_FREE
+#define SAFE_FREE( p )          { free( (p) ); (p) = nullptr; }
+#endif//SAFF_FREE 
+
+#ifndef SAFE_DELETE
+#define SAFE_DELETE( p )        { if ( (p) ) { delete (p); (p) = nullptr; } }           // ifをつけるのはoperator delete対策のため.
+#endif//SAFE_DELETE
+
+#ifndef SAFE_DELETE_ARRAY
+#define SAFE_DELETE_ARRAY( p )  { if ( (p) ) { delete [] (p); (p) = nullptr; } }        // ifをつけるのはoperator delete対策のため.
+#endif//SAFE_DELETE_ARRAY
+
+#ifndef SAFE_RELEASE
+#define SAFE_RELEASE( p )       { if ( (p) ) { (p)->Release(); (p) = nullptr; } }
+#endif//SAFE_RELEASE
+
+
 namespace asdx {
 
 //----------------------------------------------------------------------------------------
