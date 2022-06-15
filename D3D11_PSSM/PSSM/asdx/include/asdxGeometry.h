@@ -4,8 +4,7 @@
 // Copyright(c) Project Asura. All right reserved.
 //-------------------------------------------------------------------------------------
 
-#ifndef __ASDX_GEOMETRY_H__
-#define __ASDX_GEOMETRY_H__
+#pragma once
 
 
 //-------------------------------------------------------------------------------------
@@ -136,6 +135,20 @@ public:
     //! @brief      デストラクタです.
     //--------------------------------------------------------------------------
     virtual ~Vector3x8();
+
+    //--------------------------------------------------------------------------
+    //! @brief      Vector3*型へのキャストです.
+    //!
+    //! @return     最初の要素へのポインタを返却します.
+    //--------------------------------------------------------------------------
+    operator        Vector3* ();
+
+    //--------------------------------------------------------------------------
+    //! @brief      const Vector3*型へのキャストです.
+    //!
+    //! @return     最初の要素へのポインタを返却します.
+    //--------------------------------------------------------------------------
+    operator const  Vector3* () const;
 
     //--------------------------------------------------------------------------
     //! @brief      インデクサです.
@@ -738,8 +751,8 @@ public:
     //==========================================================================
     // public variables.
     //==========================================================================
-    Vector3     mini;        //!< 最小値です.
-    Vector3     maxi;        //!< 最大値です.
+    Vector3     min;        //!< 最小値です.
+    Vector3     max;        //!< 最大値です.
 
     //==========================================================================
     // public methods.
@@ -835,7 +848,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingBox& value ) const;
+    bool                    Intersects( const BoundingBox& value )       const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -844,7 +857,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingSphere& value ) const;
+    bool                    Intersects( const BoundingSphere& value )    const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -853,7 +866,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingFrustum& value ) const;
+    bool                    Intersects( const BoundingFrustum& value )   const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -861,7 +874,7 @@ public:
     //! @param [in]     value       判定する平面式.
     //! @retval     交差判定の結果を返却します.
     //--------------------------------------------------------------------------
-    PlaneIntersectionType Intersects( const Plane& value ) const;
+    PlaneIntersectionType   Intersects( const Plane& value )             const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -871,21 +884,21 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const Ray& value, f32& distance ) const;
+    bool                    Intersects( const Ray& value, f32& distance ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      境界箱を構成する8角の点を取得します.
     //!
     //! @return     境界箱を構成する8角の点を返却します.
     //--------------------------------------------------------------------------
-    Vector3x8 GetCorners() const;
+    Vector3x8               GetCorners()                           const;
 
     //--------------------------------------------------------------------------
     //! @brief      境界箱を構成する8角の点を取得します.
     //!
     //! @param [out]    result      境界箱を構成する8角の点.
     //--------------------------------------------------------------------------
-    void GetCorners( Vector3x8& result ) const;
+    void                    GetCorners( Vector3x8& result )        const;
 
     //--------------------------------------------------------------------------
     //! @brief      2つの境界箱をマージします.
@@ -894,7 +907,7 @@ public:
     //! @param [in]     b           入力境界箱.
     //! @return     2つの境界箱をマージした結果を返却します.
     //--------------------------------------------------------------------------
-    static BoundingBox CreateMerged( const BoundingBox& a, const BoundingBox& b );
+    static BoundingBox      CreateMerged( const BoundingBox& a, const BoundingBox& b );
 
     //--------------------------------------------------------------------------
     //! @brief      2つの境界箱をマージします.
@@ -903,7 +916,7 @@ public:
     //! @param [in]     b           入力境界箱.
     //! @param [out]    result      マージした境界箱.
     //--------------------------------------------------------------------------
-    static void CreateMerged( const BoundingBox& a, const BoundingBox& b, BoundingBox& result );
+    static void             CreateMerged( const BoundingBox& a, const BoundingBox& b, BoundingBox& result );
 
     //--------------------------------------------------------------------------
     //! @brief      境界球から境界箱を生成します.
@@ -911,7 +924,7 @@ public:
     //! @param [in]     value       境界球.
     //! @return     境界球から作成した境界箱を返却します.
     //--------------------------------------------------------------------------
-    static BoundingBox CreateFromSphere( const BoundingSphere& value );
+    static BoundingBox      CreateFromSphere( const BoundingSphere& value );
 
     //--------------------------------------------------------------------------
     //! @brief      境界球から境界箱を生成します.
@@ -919,7 +932,7 @@ public:
     //! @param [in]     value       境界球.
     //! @param [out]    result      作成した境界箱.
     //--------------------------------------------------------------------------
-    static void CreateFromSphere( const BoundingSphere& value, BoundingBox& result );
+    static void             CreateFromSphere( const BoundingSphere& value, BoundingBox& result );
 
     //--------------------------------------------------------------------------
     //! @brief      点群から境界箱を生成します.
@@ -929,7 +942,7 @@ public:
     //! @param [in]     offset          配列の先頭からのオフセット.
     //! @return     点群から生成した境界箱を返却します.
     //--------------------------------------------------------------------------
-    static BoundingBox CreateFromPoints( const u32 numPoints, const Vector3* pPoints, const u32 offset );
+    static BoundingBox      CreateFromPoints( const u32 numPoints, const Vector3* pPoints, const u32 offset );
 
     //--------------------------------------------------------------------------
     //! @brief      点群から境界箱を生成します.
@@ -939,23 +952,7 @@ public:
     //! @param [in]     offset          配列の先頭からのオフセット.
     //! @param [out]    result          生成した境界箱.
     //--------------------------------------------------------------------------
-    static void CreateFromPoints( const u32 numPoints, const Vector3* pPoints, const u32 offset, BoundingBox& result );
-
-    //--------------------------------------------------------------------------
-    //! @brief      8角の点から境界箱を生成します.
-    //!
-    //! @param [in]     coners          8角の点.
-    //! @return     8角の点から生成した境界箱を返却します.
-    //--------------------------------------------------------------------------
-    static BoundingBox CreateFromCorners( const Vector3x8& corners );
-
-    //--------------------------------------------------------------------------
-    //! @brief      8角の点から境界箱を生成します.
-    //!
-    //! @param [in]     coners          8角の点.
-    //! @param [out]    result          生成した境界箱.
-    //--------------------------------------------------------------------------
-    static void CreateFromCorners( const Vector3x8& corners, BoundingBox& result );
+    static void             CreateFromPoints( const u32 numPoints, const Vector3* pPoints, const u32 offset, BoundingBox& result );
 };
 
 
@@ -1042,7 +1039,7 @@ public:
     //! @retval true    等価です.
     //! @retval false   非等価です.
     //--------------------------------------------------------------------------
-    bool operator == ( const BoundingSphere& value ) const;
+    bool            operator == ( const BoundingSphere& value ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      非等価比較演算子です.
@@ -1051,7 +1048,7 @@ public:
     //! @retval true    非等価です.
     //! @retval false   等価です.
     //--------------------------------------------------------------------------
-    bool operator != ( const BoundingSphere& value ) const;
+    bool            operator != ( const BoundingSphere& value ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      包含判定を行います.
@@ -1092,7 +1089,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingBox& value ) const;
+    bool                    Intersects( const BoundingBox& value )       const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1101,7 +1098,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingSphere& value ) const;
+    bool                    Intersects( const BoundingSphere& value )    const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1110,7 +1107,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingFrustum& value ) const;
+    bool                    Intersects( const BoundingFrustum& value )   const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1118,7 +1115,7 @@ public:
     //! @param [in]     value       判定する平面式.
     //! @return     交差判定の結果を返却します.
     //--------------------------------------------------------------------------
-    PlaneIntersectionType Intersects( const Plane& value ) const;
+    PlaneIntersectionType   Intersects( const Plane& value )             const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1128,7 +1125,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const Ray& value, f32& distance ) const;
+    bool                    Intersects( const Ray& value, f32& distance ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      2つの境界球をマージします.
@@ -1137,7 +1134,7 @@ public:
     //! @param [in]     b           入力境界球.
     //! @return     2つの境界球をマージした結果を返却します.
     //--------------------------------------------------------------------------
-    static BoundingSphere CreateMerged( const BoundingSphere& a, const BoundingSphere& b );
+    static BoundingSphere   CreateMerged( const BoundingSphere& a, const BoundingSphere& b );
 
     //--------------------------------------------------------------------------
     //! @brief      2つの境界球をマージします.
@@ -1146,7 +1143,7 @@ public:
     //! @param [in]     b           入力境界球.
     //! @param [out]    result      マージした境界球.
     //--------------------------------------------------------------------------
-    static void CreateMerged( const BoundingSphere& a, const BoundingSphere& b, BoundingSphere& result );
+    static void             CreateMerged( const BoundingSphere& a, const BoundingSphere& b, BoundingSphere& result );
 
     //--------------------------------------------------------------------------
     //! @brief      境界箱から境界球を生成します.
@@ -1154,7 +1151,7 @@ public:
     //! @param [in]     value       境界箱.
     //! @return     境界箱から生成した境界球を返却します.
     //--------------------------------------------------------------------------
-    static BoundingSphere CreateFromBoundingBox( const BoundingBox& value );
+    static BoundingSphere   CreateFromBoundingBox( const BoundingBox& value );
 
     //--------------------------------------------------------------------------
     //! @brief      境界箱から境界球を生成します.
@@ -1162,7 +1159,7 @@ public:
     //! @param [in]     value       境界箱.
     //! @param [out]    result      生成した境界球.
     //--------------------------------------------------------------------------
-    static void CreateFromBoundingBox( const BoundingBox& value, BoundingSphere& result );
+    static void             CreateFromBoundingBox( const BoundingBox& value, BoundingSphere& result );
 
     //--------------------------------------------------------------------------
     //! @brief      点群から境界球を生成します.
@@ -1172,7 +1169,7 @@ public:
     //! @param [in]     offset      配列の先頭からのオフセット.
     //! @return     点群から生成された境界球を返却します.
     //--------------------------------------------------------------------------
-    static BoundingSphere CreateFromPoints( const u32 numPoint, const Vector3* pPoints, const u32 offset );
+    static BoundingSphere   CreateFromPoints( const u32 numPoint, const Vector3* pPoints, const u32 offset );
 
     //--------------------------------------------------------------------------
     //! @brief      点群から境界球を生成します.
@@ -1182,23 +1179,7 @@ public:
     //! @param [in]     offset      配列の先頭からのオフセット.
     //! @param [out]    result      生成された境界球.
     //--------------------------------------------------------------------------
-    static void CreateFromPoints( const u32 numPoint, const Vector3* pPoints, const u32 offset, BoundingSphere& result );
-
-    //--------------------------------------------------------------------------
-    //! @brief      8角の点から境界球を生成します.
-    //!
-    //! @param [in]     corners     8角の点.
-    //! @return     8角の点から生成された境界球を返却します.
-    //--------------------------------------------------------------------------
-    static BoundingSphere CreateFromCorners( const Vector3x8& coners );
-
-    //--------------------------------------------------------------------------
-    //! @brief      8角の点から境界球を生成します.
-    //!
-    //! @param [in]     corners     8角の点.
-    //! @param [out:    sphere      生成された境界球.
-    //--------------------------------------------------------------------------
-    static void CreateFromCorners( const Vector3x8& coners, BoundingSphere& sphere );
+    static void             CreateFromPoints( const u32 numPoint, const Vector3* pPoints, const u32 offset, BoundingSphere& result );
 };
 
 
@@ -1274,12 +1255,12 @@ public:
     //==========================================================================
     enum
     {
-        PLANE_LEFT = 0,
-        PLANE_RIGHT,
-        PLANE_TOP,
-        PLANE_BOTTOM,
-        PLANE_NEAR,
-        PLANE_FAR
+        LEFT = 0,
+        RIGHT,
+        TOP,
+        BOTTOM,
+        NEAR_CLIP,
+        FAR_CLIP
     };
     Plane plane[ 6 ];           //!< 要素数6の平面式の配列です.
 
@@ -1312,7 +1293,7 @@ public:
     //! @param [in]     value       代入する値.
     //! @return     代入結果を返却します.
     //--------------------------------------------------------------------------
-    BoundingFrustum& operator =  ( const BoundingFrustum& value );
+    BoundingFrustum&    operator =  ( const BoundingFrustum& value );
 
     //--------------------------------------------------------------------------
     //! @brief      等価比較演算子です.
@@ -1321,7 +1302,7 @@ public:
     //! @retval true    等価です.
     //! @retval false   非等価です.
     //--------------------------------------------------------------------------
-    bool operator == ( const BoundingFrustum& value ) const;
+    bool                operator == ( const BoundingFrustum& value ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      非等価比較演算子です.
@@ -1330,7 +1311,7 @@ public:
     //! @retval true    非等価です.
     //! @retval false   等価です.
     //--------------------------------------------------------------------------
-    bool operator != ( const BoundingFrustum& value ) const;
+    bool                operator != ( const BoundingFrustum& value ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      包含判定を行います.
@@ -1338,7 +1319,7 @@ public:
     //! @param [in]     value       判定する点
     //! @return     境界錘台に点が含まれるかどうかの判定結果を返却します.
     //--------------------------------------------------------------------------
-    ContainmentType Contains( const Vector3& value ) const;
+    ContainmentType     Contains( const Vector3& value )          const;
 
     //--------------------------------------------------------------------------
     //! @brief      包含判定を行います.
@@ -1346,7 +1327,7 @@ public:
     //! @param [in]     value       判定する境界球.
     //! @return     境界錐台に境界箱が含まれるかどうかの判定結果を返却します.
     //--------------------------------------------------------------------------
-    ContainmentType Contains( const BoundingSphere& value ) const;
+    ContainmentType     Contains( const BoundingSphere& value )   const;
 
     //--------------------------------------------------------------------------
     //! @brief      包含判定を行います.
@@ -1354,7 +1335,7 @@ public:
     //! @param [in]     value       判定する境界箱.
     //! @retval     境界箱に境界球が含まれるかどうかの判定結果を返却します.
     //--------------------------------------------------------------------------
-    ContainmentType Contains( const BoundingBox& value ) const;
+    ContainmentType     Contains( const BoundingBox& value )      const;
 
     //--------------------------------------------------------------------------
     //! @brief      包含判定を行います.
@@ -1362,7 +1343,7 @@ public:
     //! @param [in]     value       判定する境界錘台.
     //! @retval     境界錘台に境界球が含まれるかどうかの判定結果を返却します.
     //--------------------------------------------------------------------------
-    ContainmentType Contains( const BoundingFrustum& value ) const;
+    ContainmentType     Contains( const BoundingFrustum& value )  const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1371,7 +1352,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingBox& value ) const;
+    bool                    Intersects( const BoundingBox& value )       const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1380,7 +1361,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingSphere& value ) const;
+    bool                    Intersects( const BoundingSphere& value )    const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1389,7 +1370,7 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const BoundingFrustum& value ) const;
+    bool                    Intersects( const BoundingFrustum& value )   const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1397,7 +1378,7 @@ public:
     //! @param [in]     value       判定する平面式.
     //! @return     交差判定の結果を返却します.
     //--------------------------------------------------------------------------
-    PlaneIntersectionType Intersects( const Plane& value ) const;
+    PlaneIntersectionType   Intersects( const Plane& value )             const;
 
     //--------------------------------------------------------------------------
     //! @brief      交差判定を行います.
@@ -1407,21 +1388,21 @@ public:
     //! @retval true    交差しています.
     //! @retval false   交差はありません.
     //--------------------------------------------------------------------------
-    bool Intersects( const Ray&, f32& distance ) const;
+    bool                     Intersects( const Ray&, f32& distance ) const;
 
     //--------------------------------------------------------------------------
     //! @brief      境界錘台を構成する8角の点を取得します.
     //!
     //! @return     境界錘台を構成する8角の点を返却します.
     //--------------------------------------------------------------------------
-    Vector3x8 GetCorners() const;
+    Vector3x8               GetCorners()                           const;
 
     //--------------------------------------------------------------------------
     //! @brief      境界錘台を構成する8角の点を取得します.
     //!
     //! @param [out]    result      境界錘台を構成する8角の点.
     //--------------------------------------------------------------------------
-    void GetCorners( Vector3x8& result ) const;
+    void                    GetCorners( Vector3x8& result )        const;
 };
 
 
@@ -1516,6 +1497,3 @@ void    IsDelaunayTriangle( const Vector2& value, const Vector2& p0, const Vecto
 // Inline Files
 //--------------------------------------------------------------------------------
 #include "asdxGeometry.inl"
-
-
-#endif//__ASDX_GEOMETRY_H__

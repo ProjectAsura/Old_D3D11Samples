@@ -399,8 +399,7 @@ bool SampleApp::InitForward()
         if ( !m_Dosei.Init( 
             m_pDevice,
             resMesh,
-            pVSBlob->GetBufferPointer(),
-            pVSBlob->GetBufferSize(),
+            pVSBlob,
             "../res/scene/",
             "../res/dummy/" ) )
         {
@@ -863,7 +862,7 @@ void SampleApp::ComputeShadowMatrixPSSM()
             m_LightBasis.v );
 
         // ライトビュー空間でのAABBを求める.
-        asdx::Vector3 point = asdx::Vector3::TransformCoord( convexHull[0], lightView );
+        asdx::Vector3 point = asdx::Vector3::TransformCoord( convexHull[0u], lightView );
         asdx::Vector3 mini = point;
         asdx::Vector3 maxi = point;
         {
@@ -895,7 +894,7 @@ void SampleApp::ComputeShadowMatrixPSSM()
             m_LightBasis.v);
 
         // 求め直したライトのビュー行列を使ってAABBを求める.
-        point = asdx::Vector3::TransformCoord( convexHull[0], m_LightView );
+        point = asdx::Vector3::TransformCoord( convexHull[0u], m_LightView );
         mini  = point;
         maxi  = point;
         {
@@ -924,7 +923,7 @@ void SampleApp::ComputeShadowMatrixPSSM()
         //　単位キューブクリッピング.
         //----------------------------------
         {
-            point = asdx::Vector3::TransformCoord( convexHull[0], lightViewProj );
+            point = asdx::Vector3::TransformCoord( convexHull[0u], lightViewProj );
             mini  = point;
             maxi  = point;
             {
@@ -1029,8 +1028,8 @@ asdx::Matrix SampleApp::CreateCropMatrix( asdx::BoundingBox& box )
     f32 offsetY = 0.0f;
     f32 offsetZ = 0.0f;
 
-    asdx::Vector3 mini = box.mini;
-    asdx::Vector3 maxi = box.maxi;
+    asdx::Vector3 mini = box.min;
+    asdx::Vector3 maxi = box.max;
 
     scaleX = 2.0f / ( maxi.x - mini.x );
     scaleY = 2.0f / ( maxi.y - mini.y );

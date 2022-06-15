@@ -3,9 +3,7 @@
 // Desc : Math Module.
 // Copyright(c) Project Asura. All right reserved.
 //----------------------------------------------------------------------------
-
-#ifndef __ASDX_MATH_H__
-#define __ASDX_MATH_H__
+#pragma once
 
 //----------------------------------------------------------------------------
 // Includes
@@ -3259,6 +3257,3 @@ public:
 // Inline Files
 //-----------------------------------------------------------------------
 #include "asdxMath.inl"
-
-
-#endif//__PHANTOM_MATH_H__

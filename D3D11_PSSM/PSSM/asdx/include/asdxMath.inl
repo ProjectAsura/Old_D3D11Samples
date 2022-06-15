@@ -3,9 +3,7 @@
 // Desc : Math Module.
 // Copyright(c) Project Asura All right reserved.
 //-------------------------------------------------------------------------------------
-
-#ifndef __ASDX_MATH_INL__
-#define __ASDX_MATH_INL__
+#pragma once
 
 namespace asdx {
 
@@ -4403,5 +4401,3 @@ void Quaternion::Squad( const Quaternion &q, const Quaternion &a, const Quaterni
 }
 
 } // namespace asdx
-
-#endif// __ASDX_MATH_INL__

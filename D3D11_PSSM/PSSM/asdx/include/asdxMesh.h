@@ -108,8 +108,7 @@ public:
     bool Init( 
         ID3D11Device*        pDevice,
         const asdx::ResMesh& mesh,
-        const void*          pShaderBytecode,
-        const u32            byteCodeLength,
+        ID3DBlob*            pBlob,
         const char*          resFolderPath = "../res/",
         const char*          dummyFolderPath = "../res/"
     );
@@ -237,12 +236,20 @@ protected:
     virtual void    OnDrawBegin( ID3D11DeviceContext* pDeviceContext );
 
     //----------------------------------------------------------------------------------------
-    //! @brief      サブセット描画時の処理です.
+    //! @brief      マテリアル設定時の処理です.
     //!
     //! @param [in]     pDeviceContext      デバイスコンテキストです.
     //! @param [in]     index               サブセットインデックスです.
     //----------------------------------------------------------------------------------------
-    virtual void    OnDrawSubset( ID3D11DeviceContext* pDeviceContext, const u32 index );
+    virtual void    OnUpdateMaterial( ID3D11DeviceContext* pDeviceContext, const u32 index );
+
+    //----------------------------------------------------------------------------------------
+    //! @brief      描画キック時の処理です.
+    //!
+    //! @param [in]     pDeviceContext      デバイスコンテキストです.
+    //! @param [in]     index               サブセットインデックスです.
+    //----------------------------------------------------------------------------------------
+    virtual void    OnDrawKick( ID3D11DeviceContext* pDeviceContext, const u32 index );
 
     //----------------------------------------------------------------------------------------
     //! @brief      描画終了時の処理です.
@@ -254,6 +261,7 @@ protected:
     //----------------------------------------------------------------------------------------
     virtual void    OnTermMaterial();
 
+
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトの入力レイアウト生成時の処理です.
     //!
@@ -263,7 +271,7 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-    bool    DefOnCreateIL( ID3D11Device* pDevice, const void* shaderByteCode, const u32 byteCodeLength );
+    bool DefOnCreateIL( ID3D11Device* pDevice, const void* shaderByteCode, const u32 byteCodeLength );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトの頂点バッファ生成時の処理です.
@@ -273,7 +281,7 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-    bool    DefOnCreateVB( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
+    bool DefOnCreateVB( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトのインデックスバッファ生成時の処理です.
@@ -283,7 +291,7 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-     bool    DefOnCreateIB( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
+     bool DefOnCreateIB( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトのマテリアルバッファ生成時の処理です.
@@ -293,7 +301,7 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-    bool    DefOnCreateMB( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
+    bool DefOnCreateMB( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトのサンプラーステート生成時の処理です.
@@ -302,7 +310,7 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-    bool    DefOnCreateSmp( ID3D11Device* pDevice );
+    bool DefOnCreateSmp( ID3D11Device* pDevice );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトのサブセット生成時の処理です.
@@ -312,7 +320,7 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-    bool    DefOnCreateSubset( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
+    bool DefOnCreateSubset( ID3D11Device* pDevice, const asdx::ResMesh& mesh );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトのマテリアル生成時の処理です.
@@ -324,32 +332,40 @@ protected:
     //! @retval true    生成に成功.
     //! @retval false   生成に失敗.
     //----------------------------------------------------------------------------------------
-    bool    DefOnCreateMaterial( ID3D11Device* pDevice, const asdx::ResMesh& mesh, const char* resPath, const char* dummyPath );
+    bool DefOnCreateMaterial( ID3D11Device* pDevice, const asdx::ResMesh& mesh, const char* resPath, const char* dummyPath );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトの描画開始時の処理です.
     //!
     //! @param [in]     pDeviceContext      デバイスコンテキストです.
     //----------------------------------------------------------------------------------------
-    void    DefOnDrawBegin( ID3D11DeviceContext* pDeviceContext );
+    void DefOnDrawBegin( ID3D11DeviceContext* pDeviceContext );
 
     //----------------------------------------------------------------------------------------
-    //! @brief      デフォルトのサブセット描画時の処理です.
+    //! @brief      マテリアル設定時の処理です.
     //!
     //! @param [in]     pDeviceContext      デバイスコンテキストです.
-    //! @param [in]     index               サブセットインデックスです.
+    //! @param [in]     subsetIndex         サブセットインデックスです.
     //----------------------------------------------------------------------------------------
-    void    DefOnDrawSubset( ID3D11DeviceContext* pDeviceContext, const u32 index );
+    void DefOnUpdateMaterial( ID3D11DeviceContext* pDeviceConext, const u32 index );
+
+    //----------------------------------------------------------------------------------------
+    //! @brief      描画キック時の処理です.
+    //!
+    //! @param [in]     pDeviceContext      デバイスコンテキストです.
+    //! @param [in]     subsetIndex         サブセットインデックスです.
+    //----------------------------------------------------------------------------------------
+    void DefOnDrawKick( ID3D11DeviceContext* pDeviceContext, const u32 index );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトの描画終了時の処理です.
     //----------------------------------------------------------------------------------------
-    void    DefOnDrawEnd( ID3D11DeviceContext* pDeviceContext );
+    void DefOnDrawEnd( ID3D11DeviceContext* pDeviceContext );
 
     //----------------------------------------------------------------------------------------
     //! @brief      デフォルトのマテリアル解放時の処理です.
     //----------------------------------------------------------------------------------------
-    void    DefOnTermMaterial();
+    void DefOnTermMaterial();
 
 private:
     //========================================================================================
